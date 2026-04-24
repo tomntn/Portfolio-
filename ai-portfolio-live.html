@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI Portfolio">
+<meta name="theme-color" content="#07090d">
+<title>AI Portfolio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Bebas+Neue&family=Syne:wght@400;600;700;800&display=swap');
+  :root {
+    --bg:#07090d; --surface:#0e1117; --surface2:#141820;
+    --border:#1a2030; --border2:#222b3a;
+    --accent:#00ff88; --accent-dim:rgba(0,255,136,0.08);
+    --blue:#3d8bff; --gold:#f0b429; --red:#ff4560;
+    --text:#dde4f0; --muted:#4a5568; --muted2:#2d3748;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'IBM Plex Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+    background:radial-gradient(ellipse at 20% 20%,rgba(0,255,136,.03) 0%,transparent 50%),
+               radial-gradient(ellipse at 80% 80%,rgba(61,139,255,.03) 0%,transparent 50%);
+    pointer-events:none;z-index:0;}
+  .container{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:28px 20px;}
+
+  /* HEADER */
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;}
+  .logo{font-family:'Bebas Neue',cursive;font-size:38px;letter-spacing:3px;line-height:1;}
+  .logo span{color:var(--accent);}
+  .header-sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:5px;}
+  .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  .live-badge{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:10px;color:var(--accent);letter-spacing:1px;}
+  .live-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  .edit-toggle{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border2);border-radius:20px;padding:5px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;letter-spacing:1px;transition:all .2s;}
+  .edit-toggle:hover{border-color:var(--gold);color:var(--gold);}
+  .edit-toggle.active{border-color:var(--gold);color:var(--gold);background:rgba(240,180,41,.08);}
+
+  /* STATUS */
+  .status-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--muted);margin-bottom:18px;}
+  .status-left{display:flex;align-items:center;gap:10px;}
+  .market-status{padding:2px 8px;border-radius:3px;font-weight:600;letter-spacing:.5px;}
+  .market-open{background:rgba(0,255,136,.1);color:var(--accent);}
+  .market-closed{background:rgba(90,96,112,.1);color:var(--muted);}
+  .market-pre{background:rgba(240,180,41,.1);color:var(--gold);}
+
+  .sec-label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  /* STOCK CARDS */
+  .stocks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+  .stock-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
+  .stock-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+  .stock-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+  .stock-card.vrt::after{background:linear-gradient(90deg,var(--accent),transparent);}
+  .stock-card.gev::after{background:linear-gradient(90deg,var(--blue),transparent);}
+  .stock-card.nvt::after{background:linear-gradient(90deg,var(--gold),transparent);}
+  .card-ticker{font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:2px;line-height:1;margin-bottom:2px;}
+  .card-ticker.vrt{color:var(--accent);} .card-ticker.gev{color:var(--blue);} .card-ticker.nvt{color:var(--gold);}
+  .card-name{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+  .card-price{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--text);margin-bottom:4px;min-height:32px;}
+  .shimmer{background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:200% 100%;animation:sh 1.5s infinite;border-radius:4px;color:transparent!important;}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .card-change{font-size:11px;font-weight:500;margin-bottom:14px;min-height:16px;}
+  .card-change.pos{color:var(--accent);} .card-change.neg{color:var(--red);} .card-change.neu{color:var(--muted);}
+  .card-divider{height:1px;background:var(--border);margin-bottom:12px;}
+  .card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .card-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+  .card-value{font-size:11px;color:var(--text);}
+  .pnl-tag{display:inline-block;padding:3px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+  .pnl-pos{background:rgba(0,255,136,.1);color:var(--accent);border:1px solid rgba(0,255,136,.2);}
+  .pnl-neg{background:rgba(255,69,96,.1);color:var(--red);border:1px solid rgba(255,69,96,.2);}
+  .pnl-neu{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+  /* EDIT PANEL */
+  .edit-panel{display:none;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:20px;margin-bottom:18px;animation:fadeIn .2s ease;}
+  .edit-panel.show{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .edit-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:6px;}
+  .edit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .edit-card{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:14px;}
+  .edit-card-title{font-size:10px;font-weight:600;letter-spacing:1px;margin-bottom:10px;}
+  .edit-card-title.vrt{color:var(--accent);} .edit-card-title.gev{color:var(--blue);} .edit-card-title.nvt{color:var(--gold);}
+  .edit-field{margin-bottom:8px;}
+  .edit-field label{display:block;font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+  .edit-field input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:7px 9px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);outline:none;transition:border-color .2s;}
+  .edit-field input:focus{border-color:var(--accent);}
+  .edit-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .save-btn{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);border-radius:6px;padding:8px 18px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);cursor:pointer;letter-spacing:1px;transition:all .2s;}
+  .save-btn:hover{background:rgba(0,255,136,.2);border-color:var(--accent);}
+  .reset-btn{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;letter-spacing:1px;transition:all .2s;}
+  .reset-btn:hover{border-color:var(--muted);color:var(--text);}
+  .save-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(0,255,136,.15);border:1px solid var(--accent);border-radius:8px;padding:10px 20px;font-size:12px;color:var(--accent);z-index:999;animation:fadeIn .2s ease;}
+
+  /* SUMMARY */
+  .summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+  .summary-mini{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:13px 14px;text-align:center;}
+  .s-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;}
+  .s-val{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
+  .s-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+
+  /* ANALYSIS */
+  .analysis-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;}
+  .analysis-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .analysis-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+  .btn-row{display:flex;gap:7px;}
+  .action-btn{display:flex;align-items:center;gap:5px;border-radius:6px;padding:6px 11px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s;border:1px solid;}
+  .btn-primary{background:var(--accent-dim);border-color:rgba(0,255,136,.2);color:var(--accent);}
+  .btn-primary:hover{background:rgba(0,255,136,.15);border-color:var(--accent);}
+  .btn-secondary{background:transparent;border-color:var(--border2);color:var(--muted);}
+  .btn-secondary:hover{border-color:var(--muted);color:var(--text);}
+  .action-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .spin{animation:spin 1s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .analysis-content{font-size:12px;color:var(--text);line-height:1.9;min-height:60px;white-space:pre-wrap;}
+  .analysis-content.placeholder{color:var(--muted);font-style:italic;}
+  .analysis-footer{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;}
+
+  /* EVENTS */
+  .events-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:24px;}
+  .event-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .event-item:last-child{border-bottom:none;}
+  .event-date{font-size:10px;color:var(--muted);min-width:70px;}
+  .event-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .event-text{font-size:11px;flex:1;}
+  .event-badge{font-size:9px;padding:2px 7px;border-radius:3px;letter-spacing:.5px;}
+
+  /* INSTALL HINT */
+  .install-hint{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px;}
+  .install-hint .icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+  .install-hint-text{font-size:11px;color:var(--muted);line-height:1.7;}
+  .install-hint-text strong{color:var(--text);}
+  .hint-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;margin-left:auto;flex-shrink:0;}
+  .hint-close:hover{color:var(--text);}
+
+  .footer{text-align:center;font-size:9px;color:var(--muted2);padding-top:18px;border-top:1px solid var(--border);letter-spacing:.5px;line-height:2.2;}
+
+  @media(max-width:600px){
+    .stocks-grid{grid-template-columns:1fr;}
+    .edit-grid{grid-template-columns:1fr;}
+    .logo{font-size:30px;}
+    .card-price{font-size:20px;}
+    .btn-row{flex-direction:column;}
+    .summary-row{grid-template-columns:repeat(3,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- INSTALL HINT -->
+  <div class="install-hint" id="install-hint">
+    <div class="icon">📱</div>
+    <div class="install-hint-text">
+      <strong>홈 화면 바로가기 추가하기</strong><br>
+      iPhone: Safari로 열기 → 하단 공유버튼 → "홈 화면에 추가"<br>
+      Android: Chrome 메뉴(⋮) → "홈 화면에 추가"
+    </div>
+    <button class="hint-close" onclick="closeHint()">✕</button>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="logo">AI <span>PORT</span></div>
+      <div class="header-sub">VRT · GEV · NVT</div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <button class="edit-toggle" id="edit-toggle" onclick="toggleEdit()">✎ 편집</button>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span>NYSE/NASDAQ</span>
+      <span class="market-status" id="market-status">확인중</span>
+      <span id="price-source" style="color:var(--muted2);font-size:9px;"></span>
+    </div>
+    <div id="current-time">—</div>
+  </div>
+
+  <!-- EDIT PANEL -->
+  <div class="edit-panel" id="edit-panel">
+    <div class="edit-title">✎ 포트폴리오 편집 — 변경 후 저장하면 자동 반영돼</div>
+    <div class="edit-grid">
+      <div class="edit-card">
+        <div class="edit-card-title vrt">VRT</div>
+        <div class="edit-field"><label>보유수량</label><input type="number" id="edit-vrt-shares" placeholder="10"></div>
+        <div class="edit-field"><label>진입가 ($)</label><input type="number" id="edit-vrt-cost" placeholder="309.00" step="0.01"></div>
+      </div>
+      <div class="edit-card">
+        <div class="edit-card-title gev">GEV</div>
+        <div class="edit-field"><label>보유수량</label><input type="number" id="edit-gev-shares" placeholder="2"></div>
+        <div class="edit-field"><label>진입가 ($)</label><input type="number" id="edit-gev-cost" placeholder="미입력" step="0.01"></div>
+      </div>
+      <div class="edit-card">
+        <div class="edit-card-title nvt">NVT</div>
+        <div class="edit-field"><label>보유수량</label><input type="number" id="edit-nvt-shares" placeholder="35"></div>
+        <div class="edit-field"><label>진입가 ($)</label><input type="number" id="edit-nvt-cost" placeholder="143.00" step="0.01"></div>
+      </div>
+    </div>
+    <div class="edit-actions">
+      <button class="reset-btn" onclick="resetPortfolio()">초기화</button>
+      <button class="save-btn" onclick="savePortfolio()">💾 저장</button>
+    </div>
+  </div>
+
+  <!-- STOCK CARDS -->
+  <div class="sec-label">보유 종목</div>
+  <div class="stocks-grid">
+    <div class="stock-card vrt">
+      <div class="card-ticker vrt">VRT</div>
+      <div class="card-name">Vertiv Holdings</div>
+      <div class="card-price shimmer" id="vrt-price">$000.00</div>
+      <div class="card-change neu" id="vrt-change">로딩중...</div>
+      <div class="card-divider"></div>
+      <div class="card-row"><span class="card-label">보유</span><span class="card-value" id="disp-vrt-shares">—</span></div>
+      <div class="card-row"><span class="card-label">진입가</span><span class="card-value" id="disp-vrt-cost">—</span></div>
+      <div class="card-row"><span class="card-label">평가금액</span><span class="card-value" id="vrt-value">—</span></div>
+      <div class="card-row"><span class="card-label">수익률</span><span class="pnl-tag pnl-neu" id="vrt-pnl">—</span></div>
+    </div>
+    <div class="stock-card gev">
+      <div class="card-ticker gev">GEV</div>
+      <div class="card-name">GE Vernova</div>
+      <div class="card-price shimmer" id="gev-price">$0,000.00</div>
+      <div class="card-change neu" id="gev-change">로딩중...</div>
+      <div class="card-divider"></div>
+      <div class="card-row"><span class="card-label">보유</span><span class="card-value" id="disp-gev-shares">—</span></div>
+      <div class="card-row"><span class="card-label">진입가</span><span class="card-value" id="disp-gev-cost">—</span></div>
+      <div class="card-row"><span class="card-label">평가금액</span><span class="card-value" id="gev-value">—</span></div>
+      <div class="card-row"><span class="card-label">수익률</span><span class="pnl-tag pnl-neu" id="gev-pnl">—</span></div>
+    </div>
+    <div class="stock-card nvt">
+      <div class="card-ticker nvt">NVT</div>
+      <div class="card-name">nVent Electric</div>
+      <div class="card-price shimmer" id="nvt-price">$000.00</div>
+      <div class="card-change neu" id="nvt-change">로딩중...</div>
+      <div class="card-divider"></div>
+      <div class="card-row"><span class="card-label">보유</span><span class="card-value" id="disp-nvt-shares">—</span></div>
+      <div class="card-row"><span class="card-label">진입가</span><span class="card-value" id="disp-nvt-cost">—</span></div>
+      <div class="card-row"><span class="card-label">평가금액</span><span class="card-value" id="nvt-value">—</span></div>
+      <div class="card-row"><span class="card-label">수익률</span><span class="pnl-tag pnl-neu" id="nvt-pnl">—</span></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-row">
+    <div class="summary-mini">
+      <div class="s-label">AI 포트 총액</div>
+      <div class="s-val" id="total-value" style="color:var(--accent);">—</div>
+      <div class="s-sub">3종목 합산</div>
+    </div>
+    <div class="summary-mini">
+      <div class="s-label">총 수익금</div>
+      <div class="s-val" id="total-pnl">—</div>
+      <div class="s-sub" id="total-pnl-pct">진입가 기준</div>
+    </div>
+    <div class="summary-mini">
+      <div class="s-label">자동갱신</div>
+      <div class="s-val" id="last-update" style="font-size:13px;color:var(--muted);">—</div>
+      <div class="s-sub"><span id="refresh-countdown">—</span></div>
+    </div>
+  </div>
+
+  <!-- AI ANALYSIS -->
+  <div class="sec-label">AI 실시간 분석</div>
+  <div class="analysis-box">
+    <div class="analysis-header">
+      <div class="analysis-title">📊 오늘의 포트 브리핑</div>
+      <div class="btn-row">
+        <button class="action-btn btn-secondary" id="price-btn" onclick="fetchPrices()">↻ 갱신</button>
+        <button class="action-btn btn-primary" id="analysis-btn" onclick="fetchAnalysis()">✦ AI 분석</button>
+      </div>
+    </div>
+    <div class="analysis-content placeholder" id="analysis-content">AI 분석 버튼을 눌러 오늘의 포트폴리오 브리핑을 받아보세요.</div>
+    <div class="analysis-footer">
+      <span id="analysis-time">마지막 분석: —</span>
+      <span style="color:var(--muted2);">Claude · Finnhub</span>
+    </div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="sec-label">주요 일정</div>
+  <div class="events-box">
+    <div class="event-item">
+      <div class="event-date">2026.04.24</div>
+      <div class="event-dot" style="background:var(--accent);"></div>
+      <div class="event-text">NVT 35주 매수 실행</div>
+      <span class="event-badge" style="background:rgba(0,255,136,.1);color:var(--accent);">완료</span>
+    </div>
+    <div class="event-item">
+      <div class="event-date">2026.04.28</div>
+      <div class="event-dot" style="background:var(--gold);"></div>
+      <div class="event-text">VRT +4주 추가매수 예정</div>
+      <span class="event-badge" style="background:rgba(240,180,41,.1);color:var(--gold);">예정</span>
+    </div>
+    <div class="event-item">
+      <div class="event-date">2026.05.01</div>
+      <div class="event-dot" style="background:var(--gold);"></div>
+      <div class="event-text">NVT Q1 실적 발표 · EPS 컨센서스 $0.94</div>
+      <span class="event-badge" style="background:rgba(240,180,41,.1);color:var(--gold);">실적</span>
+    </div>
+    <div class="event-item">
+      <div class="event-date">미정</div>
+      <div class="event-dot" style="background:var(--muted);"></div>
+      <div class="event-text">GEV $900대 도달 시 추가매수</div>
+      <span class="event-badge" style="background:var(--surface2);color:var(--muted);">대기</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    주가: Finnhub.io · 분석: Anthropic Claude<br>
+    개인 투자 추적 목적 · 투자 판단은 본인 책임하에
+  </div>
+</div>
+
+<div class="save-toast" id="save-toast">✓ 저장 완료</div>
+
+<script>
+const FINNHUB_KEY = 'd7lgcjpr01qm7o0bol2gd7lgcjpr01qm7o0bol30';
+
+// 기본값
+const DEFAULT_PORTFOLIO = {
+  VRT: { shares: 10, avgCost: 309.00 },
+  GEV: { shares: 2,  avgCost: null   },
+  NVT: { shares: 35, avgCost: 143.00 },
+};
+
+let PORTFOLIO = loadPortfolio();
+let priceData = {};
+let refreshTimer = 60;
+
+// ── 로컬스토리지 저장/불러오기 ──
+function loadPortfolio() {
+  try {
+    const saved = localStorage.getItem('ai_portfolio');
+    return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+  } catch(e) {
+    return JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+  }
+}
+
+function savePortfolio() {
+  const tickers = ['VRT','GEV','NVT'];
+  tickers.forEach(t => {
+    const shares = parseFloat(document.getElementById(`edit-${t.toLowerCase()}-shares`).value);
+    const cost = parseFloat(document.getElementById(`edit-${t.toLowerCase()}-cost`).value);
+    if(!isNaN(shares)) PORTFOLIO[t].shares = shares;
+    PORTFOLIO[t].avgCost = isNaN(cost) ? null : cost;
+  });
+  try { localStorage.setItem('ai_portfolio', JSON.stringify(PORTFOLIO)); } catch(e) {}
+  updateDisplayValues();
+  updateCards();
+  showToast();
+  toggleEdit(false);
+}
+
+function resetPortfolio() {
+  PORTFOLIO = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+  try { localStorage.removeItem('ai_portfolio'); } catch(e) {}
+  fillEditInputs();
+  updateDisplayValues();
+  updateCards();
+  showToast('↺ 초기화 완료');
+}
+
+function showToast(msg='✓ 저장 완료') {
+  const t = document.getElementById('save-toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2000);
+}
+
+// ── 편집 패널 ──
+function toggleEdit(forceClose) {
+  const panel = document.getElementById('edit-panel');
+  const btn = document.getElementById('edit-toggle');
+  const isOpen = panel.classList.contains('show');
+  if(forceClose === false || isOpen) {
+    panel.classList.remove('show'); btn.classList.remove('active');
+  } else {
+    fillEditInputs();
+    panel.classList.add('show'); btn.classList.add('active');
+  }
+}
+
+function fillEditInputs() {
+  ['VRT','GEV','NVT'].forEach(t => {
+    const p = PORTFOLIO[t];
+    document.getElementById(`edit-${t.toLowerCase()}-shares`).value = p.shares || '';
+    document.getElementById(`edit-${t.toLowerCase()}-cost`).value = p.avgCost || '';
+  });
+}
+
+function updateDisplayValues() {
+  ['VRT','GEV','NVT'].forEach(t => {
+    const p = PORTFOLIO[t];
+    const id = t.toLowerCase();
+    document.getElementById(`disp-${id}-shares`).textContent = `${p.shares}주`;
+    document.getElementById(`disp-${id}-cost`).textContent = p.avgCost ? `$${p.avgCost.toFixed(2)}` : '—';
+  });
+}
+
+// ── 홈 화면 힌트 ──
+function closeHint() {
+  document.getElementById('install-hint').style.display = 'none';
+  try { localStorage.setItem('hint_closed','1'); } catch(e) {}
+}
+try { if(localStorage.getItem('hint_closed')) document.getElementById('install-hint').style.display = 'none'; } catch(e) {}
+
+// ── 시간 & 마켓 ──
+function updateTime() {
+  const now = new Date();
+  const etTime = new Date(now.getTime() + (now.getTimezoneOffset() + (-4)*60)*60000);
+  const h = etTime.getHours(), m = String(etTime.getMinutes()).padStart(2,'0'), s = String(etTime.getSeconds()).padStart(2,'0');
+  const day = etTime.getDay();
+  document.getElementById('current-time').textContent =
+    `ET ${h}:${m}:${s} · KST ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const el = document.getElementById('market-status');
+  const mins = h*60+etTime.getMinutes(), wd = day>=1&&day<=5;
+  if(!wd){el.textContent='주말 휴장';el.className='market-status market-closed';}
+  else if(mins>=570&&mins<960){el.textContent='🟢 장중';el.className='market-status market-open';}
+  else if(mins>=390&&mins<570){el.textContent='🟡 프리';el.className='market-status market-pre';}
+  else if(mins>=960&&mins<1200){el.textContent='🟡 애프터';el.className='market-status market-pre';}
+  else{el.textContent='⚫ 마감';el.className='market-status market-closed';}
+}
+
+// ── Finnhub 주가 ──
+async function fetchPrices() {
+  const btn = document.getElementById('price-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spin">↻</span>';
+  try {
+    const results = await Promise.all(['VRT','GEV','NVT'].map(t =>
+      fetch(`https://finnhub.io/api/v1/quote?symbol=${t}&token=${FINNHUB_KEY}`).then(r=>r.json())
+    ));
+    ['VRT','GEV','NVT'].forEach((ticker,i) => {
+      const d = results[i];
+      if(d && d.c) priceData[ticker] = {price:d.c, change:d.d, changePct:d.dp};
+    });
+    updateCards();
+    document.getElementById('price-source').textContent = '· 실시간';
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    refreshTimer = 60;
+  } catch(e) {
+    document.getElementById('price-source').textContent = '· 오류';
+  }
+  btn.disabled=false; btn.innerHTML='↻ 갱신';
+}
+
+function updateCards() {
+  let totalValue=0, totalCost=0, totalPnl=0;
+  ['VRT','GEV','NVT'].forEach(ticker => {
+    const p = PORTFOLIO[ticker], d = priceData[ticker];
+    const id = ticker.toLowerCase();
+    if(!d) return;
+    const priceEl = document.getElementById(`${id}-price`);
+    priceEl.textContent = `$${d.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    priceEl.classList.remove('shimmer');
+    const changeEl = document.getElementById(`${id}-change`);
+    const sign = d.change>=0?'+':'';
+    changeEl.textContent = `${sign}$${Math.abs(d.change).toFixed(2)} (${sign}${d.changePct.toFixed(2)}%)`;
+    changeEl.className = `card-change ${d.change>=0?'pos':'neg'}`;
+    const value = d.price * p.shares;
+    totalValue += value;
+    document.getElementById(`${id}-value`).textContent =
+      `$${value.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+    const pnlEl = document.getElementById(`${id}-pnl`);
+    if(p.avgCost) {
+      const pnlPct=((d.price-p.avgCost)/p.avgCost)*100, pnlAmt=(d.price-p.avgCost)*p.shares;
+      const s2=pnlPct>=0?'+':'';
+      pnlEl.textContent=`${s2}${pnlPct.toFixed(1)}% (${s2}$${Math.abs(pnlAmt).toFixed(0)})`;
+      pnlEl.className=`pnl-tag ${pnlPct>=0?'pnl-pos':'pnl-neg'}`;
+      totalCost+=p.avgCost*p.shares; totalPnl+=pnlAmt;
+    } else {
+      pnlEl.textContent='진입가 미입력'; pnlEl.className='pnl-tag pnl-neu';
+    }
+  });
+  document.getElementById('total-value').textContent =
+    `$${totalValue.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+  if(totalCost>0) {
+    const pct=(totalPnl/totalCost)*100, s=totalPnl>=0?'+':'';
+    const el=document.getElementById('total-pnl');
+    el.textContent=`${s}$${Math.abs(totalPnl).toFixed(0)}`;
+    el.style.color=totalPnl>=0?'var(--accent)':'var(--red)';
+    document.getElementById('total-pnl-pct').textContent=`${s}${pct.toFixed(1)}%`;
+  }
+}
+
+// ── AI 분석 ──
+async function fetchAnalysis() {
+  const btn=document.getElementById('analysis-btn'), content=document.getElementById('analysis-content');
+  btn.disabled=true; btn.innerHTML='<span class="spin">✦</span> 분석중';
+  content.className='analysis-content placeholder'; content.textContent='Claude가 분석 중...';
+  const vrt=priceData.VRT||{price:'미조회',changePct:0};
+  const gev=priceData.GEV||{price:'미조회',changePct:0};
+  const nvt=priceData.NVT||{price:'미조회',changePct:0};
+  const p=PORTFOLIO, today=new Date();
+  const fmt=v=>typeof v==='number'?v.toFixed(2):v;
+  const fmtPct=v=>typeof v==='number'?((v>=0?'+':'')+v.toFixed(2)+'%'):'-';
+  const prompt=`오늘(${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일) 내 AI 인프라 포트폴리오 분석해줘. 반말, 직설적으로. 200자 이내.
+
+보유현황:
+- VRT: ${p.VRT.shares}주, 진입가 ${p.VRT.avgCost?'$'+p.VRT.avgCost:'미입력'} → 현재 $${fmt(vrt.price)} (${fmtPct(vrt.changePct)})
+- GEV: ${p.GEV.shares}주, 진입가 ${p.GEV.avgCost?'$'+p.GEV.avgCost:'미입력'} → 현재 $${fmt(gev.price)} (${fmtPct(gev.changePct)})
+- NVT: ${p.NVT.shares}주, 진입가 ${p.NVT.avgCost?'$'+p.NVT.avgCost:'미입력'} → 현재 $${fmt(nvt.price)} (${fmtPct(nvt.changePct)})
+
+1. 오늘 포트 한줄 평가
+2. 주목 종목 + 이유
+3. 이번주 액션`;
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const text=data.content?.map(i=>i.text||'').join('')||'분석 실패';
+    content.className='analysis-content'; content.textContent=text;
+    const now=new Date();
+    document.getElementById('analysis-time').textContent=
+      `마지막 분석: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  } catch(e) {
+    content.className='analysis-content'; content.textContent='⚠️ API 연결 실패. PC에서 열어봐.';
+  }
+  btn.disabled=false; btn.innerHTML='✦ AI 분석';
+}
+
+function countdown() {
+  refreshTimer--;
+  const el=document.getElementById('refresh-countdown');
+  if(refreshTimer<=0){fetchPrices();refreshTimer=60;}
+  else{el.textContent=`${refreshTimer}초 후 갱신`;}
+}
+
+// ── 초기화 ──
+updateDisplayValues();
+updateTime();
+setInterval(updateTime,1000);
+setInterval(countdown,1000);
+fetchPrices();
+</script>
+</body>
+</html>
